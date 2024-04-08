@@ -1,7 +1,7 @@
 import { MongoClient } from 'mongodb';
 
 const url = 'mongodb://localhost:27017/';
-const dbName = 'project2';  // Change to your database name
+const dbName = 'project2';  
 const client = new MongoClient(url);
 
 async function updatePortfolioValues() {

@@ -1,7 +1,7 @@
 import { MongoClient } from 'mongodb';
 
 const url = 'mongodb://localhost:27017/';
-const dbName = 'project2';  // Change to your database name
+const dbName = 'project2';
 const client = new MongoClient(url);
 
 async function enhanceCollections() {
@@ -18,6 +18,9 @@ async function enhanceCollections() {
 
         // Process Users Collection
         await linkUsers(db);
+
+        // Process Transactions and link to Portfolios
+        await linkTransactionsToPortfolios(db);
 
         console.log('Collection enhancement complete.');
     } catch (err) {
@@ -82,6 +85,22 @@ async function linkUsers(db) {
         await users.updateOne(
             { user_id: link._id },
             { $set: { portfolios: link.portfolio_ids } }
+        );
+    }
+}
+
+async function linkTransactionsToPortfolios(db) {
+    const transactions = db.collection('transactions');
+    const portfolios = db.collection('portfolios');
+
+    const transactionLinks = await transactions.aggregate([
+        { $group: { _id: "$portfolio_id", transaction_ids: { $push: "$transaction_id" } } }
+    ]).toArray();
+
+    for (const link of transactionLinks) {
+        await portfolios.updateOne(
+            { portfolio_id: link._id },
+            { $set: { transactions: link.transaction_ids } }
         );
     }
 }
